@@ -10,10 +10,13 @@ import SkyBackground from "../components/SkyBackground";
 
 const Home: React.FC = () => {
   const [results, setResults] = useState<string[]>([]);
+  const [gatherAndTalk, setGatherAndTalk] = useState(false);
 
   function handleChatSend(message: string): void {
     // Placeholder: Add a fake result for demo
     setResults(prev => [...prev, `Helper did something in response to: "${message}"`]);
+    setGatherAndTalk(true);
+    setTimeout(() => setGatherAndTalk(false), 5000); // 5 seconds of talking
   }
 
   return (
@@ -25,7 +28,7 @@ const Home: React.FC = () => {
       </Head>
       <HeaderBar />
       <SkyBackground />
-      <Floor />
+      <Floor gatherAndTalk={gatherAndTalk} />
       <ChatRoom onSend={handleChatSend} />
       <ResultTab results={results} />
     </div>

@@ -6,6 +6,7 @@ import { Group, Vector3 } from "three";
 
 interface FloorProps {
   scale?: [number, number, number];
+  gatherAndTalk?: boolean;
 }
 
 interface ModelProps {
@@ -120,36 +121,39 @@ const characterModels = [
     Component: Character,
     props: {
       modelPath: "/models/characters/Casual_Male.fbx",
-      position: [-10, 0, -5],
+      animationPath: "/models/characters/animations/WalkingForCasualMale.fbx",
+      idleAnimationPath: "/models/characters/animations/idleCasualMale.fbx",
+      talkingAnimationPath: "/models/characters/animations/TalkingForCasualMale.fbx",
+      position: [0, 0, 6],
       rotation: [0, Math.PI / 4, 0],
       scale: 0.02,
+      gatherPosition: [0, 0, 10],
     },
   },
   {
     Component: Character,
     props: {
       modelPath: "/models/characters/Casual_Female.fbx",
-      position: [5, 0, -8],
+      animationPath: "/models/characters/animations/WalkingForCasualFemale.fbx",
+      idleAnimationPath: "/models/characters/animations/idleCasualFemale.fbx",
+      talkingAnimationPath: "/models/characters/animations/TalkingForCasualFemale.fbx",
+      position: [0, 0, 6],
       rotation: [0, -Math.PI / 4, 0],
       scale: 0.02,
-    },
-  },
-  {
-    Component: Character,
-    props: {
-      modelPath: "/models/characters/Casual2_Male.fbx",
-      position: [-8, 0, 8],
-      rotation: [0, Math.PI / 2, 0],
-      scale: 0.02,
+      gatherPosition: [-4, 0, 2],
     },
   },
   {
     Component: Character,
     props: {
       modelPath: "/models/characters/Casual3_Female.fbx",
-      position: [-2, 0, 5],
+      animationPath: "/models/characters/animations/WalkingForCasualFemale3.fbx",
+      idleAnimationPath: "/models/characters/animations/idleCasualFemale3.fbx",
+      talkingAnimationPath: "/models/characters/animations/TalkingForCasualFemale3.fbx",
+      position: [0, 0, 6],
       rotation: [0, -Math.PI / 2, 0],
       scale: 0.02,
+      gatherPosition: [4, 0, 2],
     },
   },
 ];
@@ -482,9 +486,17 @@ const RoomGeometry: React.FC<FloorProps> = ({ scale = [1, 1, 1] }) => {
 
 const Floor: React.FC<FloorProps> = props => {
   const [charactersToShow, setCharactersToShow] = useState(0);
+  console.log("Floor gatherAndTalk:", props.gatherAndTalk);
 
   // Sequential loading for characters
   const handleCharacterLoaded = () => setCharactersToShow(charactersToShow + 1);
+
+  // Example trigger: call setGatherAndTalk(true) when chatroom prompt is received
+  // (Replace this with your chatroom integration)
+  // function onChatroomPrompt() {
+  //   setGatherAndTalk(true);
+  //   setTimeout(() => setGatherAndTalk(false), 5000); // Reset after 5s
+  // }
 
   return (
     <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 1 }}>
@@ -506,9 +518,35 @@ const Floor: React.FC<FloorProps> = props => {
 
         {/* Character Models */}
         <Suspense fallback={null}>
-          {characterModels.slice(0, charactersToShow + 1).map(({ Component, props }, i) => (
-            <LazyModel key={i} Component={Component} props={props} onLoaded={handleCharacterLoaded} />
-          ))}
+          {characterModels.slice(0, charactersToShow + 1).map(({ props: modelProps }, i) => {
+            const { position = [0, 0, 0], rotation = [0, 0, 0], gatherPosition, modelPath, animationPath, idleAnimationPath, talkingAnimationPath, scale } = modelProps;
+            const pos3 = [position[0] ?? 0, position[1] ?? 0, position[2] ?? 0] as [number, number, number];
+            const rot3 = [rotation[0] ?? 0, rotation[1] ?? 0, rotation[2] ?? 0] as [number, number, number];
+            const gatherPos3 = (gatherPosition && gatherPosition.length === 3)
+              ? [gatherPosition[0], gatherPosition[1], gatherPosition[2]] as [number, number, number]
+              : undefined;
+            console.log("About to render Character", {
+              gatherAndTalk: props.gatherAndTalk,
+              modelPath,
+              i
+            });
+            return (
+              // @ts-ignore
+              <Character
+                key={i}
+                modelPath={modelPath}
+                animationPath={animationPath}
+                idleAnimationPath={idleAnimationPath}
+                talkingAnimationPath={talkingAnimationPath}
+                scale={scale}
+                position={pos3}
+                rotation={rot3}
+                gatherAndTalk={props.gatherAndTalk}
+                {...(gatherPos3 ? { gatherPosition: gatherPos3 } : {})}
+                onLoaded={i === charactersToShow ? handleCharacterLoaded : undefined}
+              />
+            );
+          })}
         </Suspense>
 
         <PerspectiveCamera makeDefault position={[25, 25, 25]} fov={60} />
