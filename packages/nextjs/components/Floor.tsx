@@ -137,6 +137,15 @@ const characterModels = [
   {
     Component: Character,
     props: {
+      modelPath: "/models/characters/Casual2_Male.fbx",
+      position: [-8, 0, 8],
+      rotation: [0, Math.PI / 2, 0],
+      scale: 0.02,
+    },
+  },
+  {
+    Component: Character,
+    props: {
       modelPath: "/models/characters/Casual3_Female.fbx",
       position: [-2, 0, 5],
       rotation: [0, -Math.PI / 2, 0],
