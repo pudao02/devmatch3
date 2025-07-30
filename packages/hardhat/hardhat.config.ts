@@ -15,6 +15,9 @@ import { task } from "hardhat/config";
 import generateTsAbis from "./scripts/generateTsAbis";
 import "./tasks";
 
+//
+console.log("DEBUG: PRIVATE_KEY loaded?", !!process.env.PRIVATE_KEY);
+//
 // If not set, it uses ours Alchemy's default API key.
 // You can get your own at https://dashboard.alchemyapi.io
 const providerApiKey = process.env.ALCHEMY_API_KEY || "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
@@ -26,15 +29,8 @@ const deployerPrivateKey =
 const etherscanApiKey = process.env.ETHERSCAN_V2_API_KEY || "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW";
 
 // Sapphire accounts configuration
-const accounts = process.env.PRIVATE_KEY
-  ? [process.env.PRIVATE_KEY]
-  : {
-      mnemonic: "test test test test test test test test test test test junk",
-      path: "m/44'/60'/0'/0",
-      initialIndex: 0,
-      count: 20,
-      passphrase: "",
-    };
+// Sapphire accounts configuration
+const accounts = process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : [];
 /////
 
 const config: HardhatUserConfig = {

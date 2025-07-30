@@ -1,10 +1,64 @@
+"use client";
+
 import React, { useEffect, useRef, useState } from "react";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { injected } from "wagmi/connectors";
 
 const HeaderBar: React.FC = () => {
   const [visible, setVisible] = useState<boolean>(false);
   const [hovering, setHovering] = useState<boolean>(false);
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const hideTimeout = useRef<NodeJS.Timeout | null>(null);
   const HIDE_DELAY = 150; // ms
+
+  // Wagmi hooks
+  const { address, isConnected } = useAccount();
+  const { connect, isPending } = useConnect();
+  const { disconnect } = useDisconnect();
+
+  const handleConnect = async () => {
+    console.log("Header Connect Wallet button clicked");
+    setIsConnecting(true);
+    try {
+      // Direct MetaMask connection
+      if (typeof window !== 'undefined' && window.ethereum) {
+        console.log("MetaMask detected, requesting accounts...");
+        
+        // Request accounts directly from MetaMask
+        const accounts = await window.ethereum.request({ 
+          method: 'eth_requestAccounts' 
+        });
+        
+        console.log("Accounts received:", accounts);
+        
+        if (accounts && accounts.length > 0) {
+          console.log("Successfully connected to MetaMask!");
+          alert(`Connected to MetaMask! Address: ${accounts[0]}`);
+          
+          // Now try to connect with wagmi
+          try {
+            const connector = injected();
+            await connect({ connector });
+            console.log("Wagmi connection successful");
+          } catch (wagmiError) {
+            console.error("Wagmi connection failed:", wagmiError);
+          }
+        }
+      } else {
+        console.error("MetaMask not found");
+        alert("MetaMask not found! Please install MetaMask extension.");
+      }
+    } catch (error) {
+      console.error("Failed to connect:", error);
+      alert("Failed to connect to MetaMask. Please make sure MetaMask is installed and unlocked.");
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnect = () => {
+    disconnect();
+  };
 
   useEffect(() => {
     function handleMouseMove(e: MouseEvent): void {
@@ -127,18 +181,38 @@ const HeaderBar: React.FC = () => {
         </div>
         {/* Right: Connect Wallet */}
         <div>
-          <button
-            style={{
-              ...buttonStyle,
-              background: "#ffe08a",
-              color: "#22334d",
-              border: "2px solid #3a5ca8",
-              fontWeight: "bold",
-              padding: "10px 26px",
-            }}
-          >
-            Connect Wallet
-          </button>
+          {!isConnected ? (
+            <button
+              onClick={handleConnect}
+              disabled={isConnecting || isPending}
+              style={{
+                ...buttonStyle,
+                background: "#ffe08a",
+                color: "#22334d",
+                border: "2px solid #3a5ca8",
+                fontWeight: "bold",
+                padding: "10px 26px",
+                opacity: (isConnecting || isPending) ? 0.7 : 1,
+                cursor: (isConnecting || isPending) ? "not-allowed" : "pointer",
+              }}
+            >
+              {(isConnecting || isPending) ? "Connecting..." : "Connect Wallet"}
+            </button>
+          ) : (
+            <button
+              onClick={handleDisconnect}
+              style={{
+                ...buttonStyle,
+                background: "#dc3545",
+                color: "#fff",
+                border: "2px solid #dc3545",
+                fontWeight: "bold",
+                padding: "10px 26px",
+              }}
+            >
+              Disconnect
+            </button>
+          )}
         </div>
       </div>
     </>

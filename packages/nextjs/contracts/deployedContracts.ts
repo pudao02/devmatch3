@@ -5,150 +5,254 @@
 import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
-  31337: {
-    YourContract: {
-      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  23295: { // Sapphire Testnet Chain ID
+    HealthcareAI: {
+      address: "0x0000000000000000000000000000000000000000", // Placeholder - you'll need to deploy and update this
       abi: [
         {
-          inputs: [
-            {
-              internalType: "address",
-              name: "_owner",
-              type: "address",
-            },
-          ],
-          stateMutability: "nonpayable",
-          type: "constructor",
+          "inputs": [],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
         },
         {
-          anonymous: false,
-          inputs: [
+          "anonymous": false,
+          "inputs": [
             {
-              indexed: true,
-              internalType: "address",
-              name: "greetingSetter",
-              type: "address",
-            },
-            {
-              indexed: false,
-              internalType: "string",
-              name: "newGreeting",
-              type: "string",
-            },
-            {
-              indexed: false,
-              internalType: "bool",
-              name: "premium",
-              type: "bool",
-            },
-            {
-              indexed: false,
-              internalType: "uint256",
-              name: "value",
-              type: "uint256",
-            },
+              "indexed": true,
+              "internalType": "address",
+              "name": "newBackend",
+              "type": "address"
+            }
           ],
-          name: "GreetingChange",
-          type: "event",
+          "name": "AIBackendChanged",
+          "type": "event"
         },
         {
-          inputs: [],
-          name: "greeting",
-          outputs: [
+          "anonymous": false,
+          "inputs": [
             {
-              internalType: "string",
-              name: "",
-              type: "string",
+              "indexed": true,
+              "internalType": "address",
+              "name": "user",
+              "type": "address"
             },
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "promptId",
+              "type": "uint256"
+            }
           ],
-          stateMutability: "view",
-          type: "function",
+          "name": "PromptSubmitted",
+          "type": "event"
         },
         {
-          inputs: [],
-          name: "owner",
-          outputs: [
+          "anonymous": false,
+          "inputs": [
             {
-              internalType: "address",
-              name: "",
-              type: "address",
+              "indexed": true,
+              "internalType": "address",
+              "name": "user",
+              "type": "address"
             },
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "responseId",
+              "type": "uint256"
+            }
           ],
-          stateMutability: "view",
-          type: "function",
+          "name": "ResponseStored",
+          "type": "event"
         },
         {
-          inputs: [],
-          name: "premium",
-          outputs: [
+          "anonymous": false,
+          "inputs": [
             {
-              internalType: "bool",
-              name: "",
-              type: "bool",
+              "indexed": true,
+              "internalType": "address",
+              "name": "user",
+              "type": "address"
             },
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "promptId",
+              "type": "uint256"
+            }
           ],
-          stateMutability: "view",
-          type: "function",
+          "name": "FeedbackSubmitted",
+          "type": "event"
         },
         {
-          inputs: [
+          "inputs": [],
+          "name": "aiBackend",
+          "outputs": [
             {
-              internalType: "string",
-              name: "_newGreeting",
-              type: "string",
-            },
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
           ],
-          name: "setGreeting",
-          outputs: [],
-          stateMutability: "payable",
-          type: "function",
+          "stateMutability": "view",
+          "type": "function"
         },
         {
-          inputs: [],
-          name: "totalCounter",
-          outputs: [
+          "inputs": [
             {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
+              "internalType": "address",
+              "name": "user",
+              "type": "address"
+            }
           ],
-          stateMutability: "view",
-          type: "function",
+          "name": "getMyFeedbacks",
+          "outputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint8",
+                  "name": "rating",
+                  "type": "uint8"
+                },
+                {
+                  "internalType": "string",
+                  "name": "comment",
+                  "type": "string"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "timestamp",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct HealthcareAI.Feedback[]",
+              "name": "",
+              "type": "tuple[]"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
         },
         {
-          inputs: [
+          "inputs": [],
+          "name": "getMyPrompts",
+          "outputs": [
             {
-              internalType: "address",
-              name: "",
-              type: "address",
-            },
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "prompt",
+                  "type": "string"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "timestamp",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct HealthcareAI.Prompt[]",
+              "name": "",
+              "type": "tuple[]"
+            }
           ],
-          name: "userGreetingCounter",
-          outputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
+          "stateMutability": "view",
+          "type": "function"
         },
         {
-          inputs: [],
-          name: "withdraw",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
+          "inputs": [],
+          "name": "getMyResponses",
+          "outputs": [
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "output",
+                  "type": "string"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "timestamp",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct HealthcareAI.Response[]",
+              "name": "",
+              "type": "tuple[]"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
         },
         {
-          stateMutability: "payable",
-          type: "receive",
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_backend",
+              "type": "address"
+            }
+          ],
+          "name": "setAIBackend",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
         },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "promptId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint8",
+              "name": "rating",
+              "type": "uint8"
+            },
+            {
+              "internalType": "string",
+              "name": "comment",
+              "type": "string"
+            }
+          ],
+          "name": "submitFeedback",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "string",
+              "name": "prompt",
+              "type": "string"
+            }
+          ],
+          "name": "submitPrompt",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "user",
+              "type": "address"
+            },
+            {
+              "internalType": "string",
+              "name": "output",
+              "type": "string"
+            }
+          ],
+          "name": "storeResponse",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        }
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 1,
+      deployedOnBlock: 0,
     },
   },
 } as const;

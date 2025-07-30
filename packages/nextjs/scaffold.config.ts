@@ -13,9 +13,28 @@ export type ScaffoldConfig = BaseConfig;
 
 export const DEFAULT_ALCHEMY_API_KEY = "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
 
+// Define Sapphire testnet chain
+const sapphireTestnet = {
+  id: 0x5aff, // 23295
+  name: 'Sapphire Testnet',
+  network: 'sapphire-testnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'TEST ROSE',
+    symbol: 'TEST ROSE',
+  },
+  rpcUrls: {
+    default: { http: ['https://testnet.sapphire.oasis.io'] },
+    public: { http: ['https://testnet.sapphire.oasis.io'] },
+  },
+  blockExplorers: {
+    default: { name: 'Sapphire Testnet Explorer', url: 'https://testnet.explorer.sapphire.oasis.io' },
+  },
+} as const;
+
 const scaffoldConfig = {
   // The networks on which your DApp is live
-  targetNetworks: [chains.hardhat],
+  targetNetworks: [sapphireTestnet], // Changed back to Sapphire testnet for TEST ROSE
   // The interval at which your front-end polls the RPC servers for new data (it has no effect if you only target the local network (default is 4000))
   pollingInterval: 30000,
   // This is ours Alchemy's default API key.
@@ -34,7 +53,7 @@ const scaffoldConfig = {
   // It's recommended to store it in an env variable:
   // .env.local for local testing, and in the Vercel/system env config for live apps.
   walletConnectProjectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || "3a8170812b534d0ff9d794f19a901d64",
-  onlyLocalBurnerWallet: true,
+  onlyLocalBurnerWallet: false,
 } as const satisfies ScaffoldConfig;
 
 export default scaffoldConfig;
