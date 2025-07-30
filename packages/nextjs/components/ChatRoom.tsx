@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth/useScaffoldWriteContract";
-import { useScaffoldReadContract } from "~~/hooks/scaffold-eth/useScaffoldReadContract";
 import { useAccount } from "wagmi";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth/useScaffoldReadContract";
+import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth/useScaffoldWriteContract";
 
 interface Message {
   sender: "system" | "user" | "ai";
@@ -15,7 +15,10 @@ interface ChatRoomProps {
 
 const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { sender: "system", text: "Welcome to the AI Healthcare Chat! Your conversations are stored securely on the blockchain." },
+    {
+      sender: "system",
+      text: "Welcome to the AI Healthcare Chat! Your conversations are stored securely on the blockchain.",
+    },
   ]);
   const [input, setInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -45,11 +48,11 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
   useEffect(() => {
     if (myPrompts && myResponses) {
       const conversation: Message[] = [];
-      
+
       // Add system message
-      conversation.push({ 
-        sender: "system", 
-        text: "Welcome to the AI Healthcare Chat! Your conversations are stored securely on the blockchain." 
+      conversation.push({
+        sender: "system",
+        text: "Welcome to the AI Healthcare Chat! Your conversations are stored securely on the blockchain.",
       });
 
       // Add prompts and responses
@@ -70,7 +73,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
           });
         }
       }
-      
+
       setMessages(conversation);
     }
   }, [myPrompts, myResponses]);
@@ -80,12 +83,12 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
     if (!input.trim() || !address) return;
 
     setIsLoading(true);
-    
+
     try {
       // Add user message to UI immediately
       const userMsg: Message = { sender: "user", text: input };
       setMessages(prev => [...prev, userMsg]);
-      
+
       // Store prompt on blockchain
       await submitPromptAsync({
         functionName: "submitPrompt",
@@ -94,9 +97,9 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
 
       // Simulate AI response (in real app, this would come from your AI backend)
       setTimeout(() => {
-        const aiResponse: Message = { 
-          sender: "ai", 
-          text: `Thank you for your question: "${input}". This is a simulated AI response. In a real implementation, your AI backend would process this and store the response on the blockchain.` 
+        const aiResponse: Message = {
+          sender: "ai",
+          text: `Thank you for your question: "${input}". This is a simulated AI response. In a real implementation, your AI backend would process this and store the response on the blockchain.`,
         };
         setMessages(prev => [...prev, aiResponse]);
         setIsLoading(false);
@@ -106,10 +109,13 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
       if (onSend) onSend(input);
     } catch (error) {
       console.error("Error submitting prompt:", error);
-      setMessages(prev => [...prev, { 
-        sender: "system", 
-        text: "Error: Failed to submit prompt to blockchain. Please try again." 
-      }]);
+      setMessages(prev => [
+        ...prev,
+        {
+          sender: "system",
+          text: "Error: Failed to submit prompt to blockchain. Please try again.",
+        },
+      ]);
       setIsLoading(false);
     }
   }
@@ -152,18 +158,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
         }}
       >
         {messages.map((msg, i) => (
-          <div 
-            key={i} 
-            style={{ 
-              color: msg.sender === "user" ? "#3a5ca8" : 
-                     msg.sender === "ai" ? "#2e7d32" : "#22334d", 
-              marginBottom: 6 
+          <div
+            key={i}
+            style={{
+              color: msg.sender === "user" ? "#3a5ca8" : msg.sender === "ai" ? "#2e7d32" : "#22334d",
+              marginBottom: 6,
             }}
           >
-            <b>
-              {msg.sender === "user" ? "You" : 
-               msg.sender === "ai" ? "AI Assistant" : "System"}:
-            </b> {msg.text}
+            <b>{msg.sender === "user" ? "You" : msg.sender === "ai" ? "AI Assistant" : "System"}:</b> {msg.text}
           </div>
         ))}
         {isLoading && (

@@ -8,4 +8,4 @@ const HealthcarePage = () => {
   );
 };
 
-export default HealthcarePage; 
+export default HealthcarePage;

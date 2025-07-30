@@ -21,20 +21,20 @@ const HeaderBar: React.FC = () => {
     setIsConnecting(true);
     try {
       // Direct MetaMask connection
-      if (typeof window !== 'undefined' && window.ethereum) {
+      if (typeof window !== "undefined" && window.ethereum) {
         console.log("MetaMask detected, requesting accounts...");
-        
+
         // Request accounts directly from MetaMask
-        const accounts = await window.ethereum.request({ 
-          method: 'eth_requestAccounts' 
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
         });
-        
+
         console.log("Accounts received:", accounts);
-        
+
         if (accounts && accounts.length > 0) {
           console.log("Successfully connected to MetaMask!");
           alert(`Connected to MetaMask! Address: ${accounts[0]}`);
-          
+
           // Now try to connect with wagmi
           try {
             const connector = injected();
@@ -192,11 +192,11 @@ const HeaderBar: React.FC = () => {
                 border: "2px solid #3a5ca8",
                 fontWeight: "bold",
                 padding: "10px 26px",
-                opacity: (isConnecting || isPending) ? 0.7 : 1,
-                cursor: (isConnecting || isPending) ? "not-allowed" : "pointer",
+                opacity: isConnecting || isPending ? 0.7 : 1,
+                cursor: isConnecting || isPending ? "not-allowed" : "pointer",
               }}
             >
-              {(isConnecting || isPending) ? "Connecting..." : "Connect Wallet"}
+              {isConnecting || isPending ? "Connecting..." : "Connect Wallet"}
             </button>
           ) : (
             <button

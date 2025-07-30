@@ -437,7 +437,7 @@ const RoomGeometry: React.FC<FloorProps> = ({ scale = [1, 1, 1] }) => {
 
       {/* Kitchen Bars */}
       <KitchenBarModel position={[-20, 0, -1]} rotation={[0, Math.PI / 2, 0]} />
-      <KitchenBar2Model position={[-20, 0,-5]} rotation={[0, Math.PI / 2, 0]} />
+      <KitchenBar2Model position={[-20, 0, -5]} rotation={[0, Math.PI / 2, 0]} />
       <KitchenBar3Model position={[-20, 0, -9]} rotation={[0, Math.PI / 2, 0]} />
 
       {/* Kitchen Bar End */}
