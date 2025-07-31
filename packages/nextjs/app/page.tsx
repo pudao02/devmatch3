@@ -16,7 +16,7 @@ const Home: React.FC = () => {
     // Placeholder: Add a fake result for demo
     setResults(prev => [...prev, `Helper did something in response to: "${message}"`]);
     setGatherAndTalk(true);
-    setTimeout(() => setGatherAndTalk(false), 5000); // 5 seconds of talking
+    setTimeout(() => setGatherAndTalk(false), 30000); // 15 seconds of talking
   }
 
   return (

@@ -46,7 +46,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
         borderTopRightRadius: "18px",
         boxShadow: "0 -4px 0 #3a5ca8",
         minHeight: "220px",
-        maxHeight: "40vh",
+        maxHeight: "300px", // Fixed maximum height in pixels
         boxSizing: "border-box", // Added
         display: "flex",
         flexDirection: "column",
@@ -58,12 +58,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
         style={{
           flex: 1,
           overflowY: "auto",
+          overflowX: "hidden",
           padding: "18px 20px 8px 20px",
           color: "#22334d",
           fontSize: "17px",
           marginBottom: "4px",
           borderTopLeftRadius: "15px",
           borderTopRightRadius: "15px",
+          maxHeight: "calc(300px - 80px)", // Account for input area height
         }}
       >
         {messages.map((msg, i) => (

@@ -122,8 +122,9 @@ const characterModels = [
     props: {
       modelPath: "/models/characters/Casual_Male.fbx",
       animationPath: "/models/characters/animations/WalkingForCasualMale.fbx",
-      idleAnimationPath: "/models/characters/animations/idleCasualMale.fbx",
+      idleAnimationPath: "/models/characters/animations/IdleCasualMale.fbx",
       talkingAnimationPath: "/models/characters/animations/TalkingForCasualMale.fbx",
+      speechBubblePath: "/models/characters/speechbubble1.fbx",
       position: [0, 0, 6],
       rotation: [0, Math.PI / 4, 0],
       scale: 0.02,
@@ -135,8 +136,9 @@ const characterModels = [
     props: {
       modelPath: "/models/characters/Casual_Female.fbx",
       animationPath: "/models/characters/animations/WalkingForCasualFemale.fbx",
-      idleAnimationPath: "/models/characters/animations/idleCasualFemale.fbx",
+      idleAnimationPath: "/models/characters/animations/IdleCasualFemale.fbx",
       talkingAnimationPath: "/models/characters/animations/TalkingForCasualFemale.fbx",
+      speechBubblePath: "/models/characters/speechbubble2.fbx",
       position: [0, 0, 6],
       rotation: [0, -Math.PI / 4, 0],
       scale: 0.02,
@@ -148,8 +150,9 @@ const characterModels = [
     props: {
       modelPath: "/models/characters/Casual3_Female.fbx",
       animationPath: "/models/characters/animations/WalkingForCasualFemale3.fbx",
-      idleAnimationPath: "/models/characters/animations/idleCasualFemale3.fbx",
+      idleAnimationPath: "/models/characters/animations/IdleCasualFemale3.fbx",
       talkingAnimationPath: "/models/characters/animations/TalkingForCasualFemale3.fbx",
+      speechBubblePath: "/models/characters/speechbubble3.fbx",
       position: [0, 0, 6],
       rotation: [0, -Math.PI / 2, 0],
       scale: 0.02,
@@ -514,12 +517,11 @@ const Floor: React.FC<FloorProps> = props => {
         <directionalLight position={[5, 5, 5]} intensity={0.8} castShadow />
 
         <RoomGeometry {...props} />
-        <KeyboardControls />
 
         {/* Character Models */}
         <Suspense fallback={null}>
           {characterModels.slice(0, charactersToShow + 1).map(({ props: modelProps }, i) => {
-            const { position = [0, 0, 0], rotation = [0, 0, 0], gatherPosition, modelPath, animationPath, idleAnimationPath, talkingAnimationPath, scale } = modelProps;
+            const { position = [0, 0, 0], rotation = [0, 0, 0], gatherPosition, modelPath, animationPath, idleAnimationPath, talkingAnimationPath, speechBubblePath, scale } = modelProps;
             const pos3 = [position[0] ?? 0, position[1] ?? 0, position[2] ?? 0] as [number, number, number];
             const rot3 = [rotation[0] ?? 0, rotation[1] ?? 0, rotation[2] ?? 0] as [number, number, number];
             const gatherPos3 = (gatherPosition && gatherPosition.length === 3)
@@ -538,6 +540,7 @@ const Floor: React.FC<FloorProps> = props => {
                 animationPath={animationPath}
                 idleAnimationPath={idleAnimationPath}
                 talkingAnimationPath={talkingAnimationPath}
+                speechBubblePath={speechBubblePath}
                 scale={scale}
                 position={pos3}
                 rotation={rot3}

@@ -30,6 +30,7 @@ function LazyModel({ Component, props, onLoaded }: LazyModelProps) {
   if (model) {
     return <primitive object={model} {...props} />;
   }
+  // Pass all props to the Component, including speechBubblePath
   return <Component {...props} />;
 }
 
@@ -38,6 +39,10 @@ const characterModels = [
     Component: Character,
     props: {
       modelPath: "/models/characters/Casual_Male.fbx",
+      animationPath: "/models/characters/animations/WalkingForCasualMale.fbx",
+      idleAnimationPath: "/models/characters/animations/IdleCasualMale.fbx",
+      talkingAnimationPath: "/models/characters/animations/TalkingForCasualMale.fbx",
+      speechBubblePath: "/models/characters/speechbubble1.fbx",
       position: [0, 0.5, 0],
       rotation: [0, Math.PI / 4, 0],
       scale: 0.01,
@@ -47,6 +52,10 @@ const characterModels = [
     Component: Character,
     props: {
       modelPath: "/models/characters/Casual_Female.fbx",
+      animationPath: "/models/characters/animations/WalkingForCasualFemale.fbx",
+      idleAnimationPath: "/models/characters/animations/IdleCasualFemale.fbx",
+      talkingAnimationPath: "/models/characters/animations/TalkingForCasualFemale.fbx",
+      speechBubblePath: "/models/characters/speechbubble2.fbx",
       position: [3, 0.5, 0],
       rotation: [0, -Math.PI / 4, 0],
       scale: 0.01,
@@ -56,6 +65,10 @@ const characterModels = [
     Component: Character,
     props: {
       modelPath: "/models/characters/Casual2_Male.fbx",
+      animationPath: "/models/characters/animations/WalkingForCasualMale.fbx",
+      idleAnimationPath: "/models/characters/animations/IdleCasualMale.fbx",
+      talkingAnimationPath: "/models/characters/animations/TalkingForCasualMale.fbx",
+      speechBubblePath: "/models/characters/speechbubble1.fbx",
       position: [-3, 0.5, 0],
       rotation: [0, Math.PI / 2, 0],
       scale: 0.01,
@@ -65,6 +78,10 @@ const characterModels = [
     Component: Character,
     props: {
       modelPath: "/models/characters/Casual3_Female.fbx",
+      animationPath: "/models/characters/animations/WalkingForCasualFemale3.fbx",
+      idleAnimationPath: "/models/characters/animations/IdleCasualFemale3.fbx",
+      talkingAnimationPath: "/models/characters/animations/TalkingForCasualFemale3.fbx",
+      speechBubblePath: "/models/characters/speechbubble3.fbx",
       position: [0, 0.5, 3],
       rotation: [0, -Math.PI / 2, 0],
       scale: 0.01,

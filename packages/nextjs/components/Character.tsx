@@ -4,12 +4,14 @@ import { Group } from "three";
 import { useFrame } from "@react-three/fiber";
 import { AnimationMixer, Vector3 } from "three";
 import { useEffect, useState } from "react";
+import SpeechBubble from "./SpeechBubble";
 
 interface CharacterProps {
   modelPath: string;
   animationPath?: string;
   idleAnimationPath?: string;
   talkingAnimationPath?: string;
+  speechBubblePath?: string;
   position: [number, number, number];
   rotation?: [number, number, number];
   scale?: number;
@@ -20,15 +22,20 @@ interface CharacterProps {
 
 const Character: React.FC<CharacterProps> = (props) => {
   console.log("Character props:", props);
-  const { modelPath, animationPath, idleAnimationPath, talkingAnimationPath, position, rotation = [0, 0, 0], scale = 1, onLoaded, gatherAndTalk, gatherPosition } = props;
-  const [state, setState] = useState<'walking' | 'idle' | 'talking'>('walking');
+  const { modelPath, animationPath, idleAnimationPath, talkingAnimationPath, speechBubblePath, position, rotation = [0, 0, 0], scale = 1, onLoaded, gatherAndTalk, gatherPosition } = props;
+  
+
+  const [state, setState] = useState<'walking' | 'idle' | 'gathering' | 'talking'>('walking');
+  const [speechBubbleVisible, setSpeechBubbleVisible] = useState(false);
   console.log("Character gatherAndTalk:", gatherAndTalk, "state:", state);
   const characterRef = useRef<Group>(null);
   const [mixer, setMixer] = useState<AnimationMixer | null>(null);
-  const [currentAction, setCurrentAction] = useState<'walk' | 'idle'>('walk');
+  const [currentAction, setCurrentAction] = useState<'walk' | 'idle' | 'talking'>('walk');
   const walkDuration = useRef(Math.random() * 3 + 2); // 2-5 seconds
   const idleDuration = useRef(Math.random() * 2 + 1); // 1-3 seconds
   const timer = useRef(0);
+  const speechBubbleTimer = useRef(0);
+  const speechBubbleDuration = useRef(Math.random() * 2 + 1); // 1-3 seconds for speech bubble visibility
 
   // Use refs for mutable position and direction
   const positionRef = useRef(new Vector3(...position));
@@ -38,6 +45,19 @@ const Character: React.FC<CharacterProps> = (props) => {
   })();
   const directionRef = useRef(directionInit);
   const currentYRotation = useRef(rotation[1] ?? 0);
+  const targetYRotation = useRef(rotation[1] ?? 0);
+  const rotationSpeed = 0.05; // Controls how fast the character turns
+
+  // Helper function to smoothly rotate towards target
+  const smoothRotate = (current: number, target: number, speed: number): number => {
+    let diff = target - current;
+    
+    // Handle angle wrapping (e.g., going from 359° to 1°)
+    if (diff > Math.PI) diff -= 2 * Math.PI;
+    if (diff < -Math.PI) diff += 2 * Math.PI;
+    
+    return current + diff * speed;
+  };
 
   const fbx = useFBX(modelPath);
   const walkAnim = animationPath ? useFBX(animationPath) : null;
@@ -57,7 +77,7 @@ const Character: React.FC<CharacterProps> = (props) => {
     if (!fbx) return;
     const mixer = new AnimationMixer(fbx);
     let action;
-    if (state === 'walking' && walkAnim && walkAnim.animations.length > 0) {
+    if ((state === 'walking' || state === 'gathering') && walkAnim && walkAnim.animations.length > 0) {
       action = mixer.clipAction(walkAnim.animations[0], fbx);
       action.play();
     } else if (state === 'idle' && idleAnim && idleAnim.animations.length > 0) {
@@ -84,9 +104,12 @@ const Character: React.FC<CharacterProps> = (props) => {
   // Gather and talk logic
   useEffect(() => {
     if (gatherAndTalk) {
-      setState('talking');
-    } else if (state === 'talking') {
+      setState('gathering');
+      setCurrentAction('walk');
+    } else if (state === 'gathering' || state === 'talking') {
       setState('walking');
+      setCurrentAction('walk');
+      setSpeechBubbleVisible(false); // Hide speech bubble when talking ends
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gatherAndTalk]);
@@ -122,21 +145,54 @@ const Character: React.FC<CharacterProps> = (props) => {
   useFrame((_, delta) => {
     if (mixer) mixer.update(delta);
     timer.current += delta;
+    speechBubbleTimer.current += delta;
+
+    if (state === 'gathering' && gatherAndTalk && gatherPosition) {
+      // Move to gatherPosition, then switch to talking
+      const gatherVec = new Vector3(...gatherPosition);
+      let pos = positionRef.current.clone();
+      const dist = pos.distanceTo(gatherVec);
+      if (dist > 0.1) {
+        // Walk slowly toward gather position
+        const direction = gatherVec.clone().sub(pos).normalize();
+        const walkSpeed = 0.02; // Slower walking speed
+        pos.add(direction.multiplyScalar(walkSpeed));
+        positionRef.current = pos;
+        if (characterRef.current) {
+          characterRef.current.position.copy(pos);
+          // Face the direction of movement with smooth rotation
+          targetYRotation.current = Math.atan2(direction.x, direction.z);
+          currentYRotation.current = smoothRotate(currentYRotation.current, targetYRotation.current, rotationSpeed);
+          characterRef.current.rotation.y = currentYRotation.current;
+        }
+      } else {
+        // Arrived at gather position, switch to talking
+        setState('talking');
+        setCurrentAction('talking');
+      }
+      return;
+    }
 
     if (state === 'talking' && gatherAndTalk && gatherPosition) {
-      // Move to gatherPosition, face [0,0,6], play talking animation
+      // Stay at gatherPosition, face center, play talking animation
       const gatherVec = new Vector3(...gatherPosition);
       const center = new Vector3(0, 0, 6);
-      // Smoothly move to gather position
-      let pos = positionRef.current.clone();
-      pos.lerp(gatherVec, 0.1); // 0.1 = smoothing factor
-      positionRef.current = pos;
+      positionRef.current = gatherVec;
       if (characterRef.current) {
-        characterRef.current.position.copy(pos);
-        // Face the center
-        const dirToCenter = center.clone().sub(pos);
-        characterRef.current.rotation.y = Math.atan2(dirToCenter.x, dirToCenter.z);
+        characterRef.current.position.copy(gatherVec);
+        const dirToCenter = center.clone().sub(gatherVec);
+        targetYRotation.current = Math.atan2(dirToCenter.x, dirToCenter.z);
+        currentYRotation.current = smoothRotate(currentYRotation.current, targetYRotation.current, rotationSpeed);
+        characterRef.current.rotation.y = currentYRotation.current;
       }
+      
+      // Random speech bubble behavior
+      if (speechBubbleTimer.current > speechBubbleDuration.current) {
+        setSpeechBubbleVisible(!speechBubbleVisible);
+        speechBubbleTimer.current = 0;
+        speechBubbleDuration.current = Math.random() * 3 + 1; // 1-4 seconds for next change
+      }
+      
       return;
     }
 
@@ -175,6 +231,8 @@ const Character: React.FC<CharacterProps> = (props) => {
           positionRef.current = pos;
           if (characterRef.current) {
             characterRef.current.position.copy(pos);
+            // Apply smooth rotation for normal walking
+            currentYRotation.current = smoothRotate(currentYRotation.current, targetYRotation.current, rotationSpeed);
             characterRef.current.rotation.y = currentYRotation.current;
           }
           // Switch to idle after walkDuration
@@ -187,6 +245,8 @@ const Character: React.FC<CharacterProps> = (props) => {
         }
       } else if (state === 'idle') {
         if (characterRef.current) {
+          // Apply smooth rotation even when idle
+          currentYRotation.current = smoothRotate(currentYRotation.current, targetYRotation.current, rotationSpeed);
           characterRef.current.rotation.y = currentYRotation.current;
         }
         if (timer.current > idleDuration.current) {
@@ -197,15 +257,25 @@ const Character: React.FC<CharacterProps> = (props) => {
           // Pick new random direction
           const v = new Vector3(Math.random() - 0.5, 0, Math.random() - 0.5);
           directionRef.current = v.length() === 0 ? new Vector3(1, 0, 0) : v.normalize();
-          currentYRotation.current = Math.atan2(directionRef.current.x, directionRef.current.z);
+          targetYRotation.current = Math.atan2(directionRef.current.x, directionRef.current.z);
         }
       }
     }
   });
 
+
+
   return (
     <group ref={characterRef} rotation={rotation} scale={[scale, scale, scale]}>
       <primitive object={fbx} />
+      {speechBubblePath && (
+                  <SpeechBubble
+            modelPath={speechBubblePath}
+            position={[0, 300, 0]} // Position much higher above the character's head
+            scale={0.4} // Appropriate size for speech bubble
+            visible={state === 'talking' && gatherAndTalk && speechBubbleVisible}
+          />
+      )}
     </group>
   );
 };
