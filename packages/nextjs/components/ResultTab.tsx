@@ -24,8 +24,8 @@ const ResultTab: React.FC<ResultTabProps> = ({ results }) => {
         zIndex: 30,
         padding: "24px 16px 16px 16px",
         overflowY: "auto",
-        fontFamily: '"Comic Sans MS", "Comic Sans", "Chalkboard SE", "monospace", sans-serif',
-        fontSize: "16px",
+        fontFamily: "'PressStart2P', 'Courier New', monospace",
+        fontSize: "12px",
         display: "flex",
         flexDirection: "column",
         gap: "14px",
@@ -33,7 +33,7 @@ const ResultTab: React.FC<ResultTabProps> = ({ results }) => {
       }}
     >
       <div
-        style={{ fontWeight: "bold", marginBottom: "14px", fontSize: "18px", letterSpacing: "1px", color: "#3a5ca8" }}
+        style={{ fontWeight: "bold", marginBottom: "14px", fontSize: "14px", letterSpacing: "1px", color: "#3a5ca8" }}
       >
         Results
       </div>

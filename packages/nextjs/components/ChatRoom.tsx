@@ -50,7 +50,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
         boxSizing: "border-box", // Added
         display: "flex",
         flexDirection: "column",
-        fontFamily: '"Comic Sans MS", "Comic Sans", "Chalkboard SE", "monospace", sans-serif',
+        fontFamily: "'PressStart2P', 'Courier New', monospace",
         transition: "width 0.2s",
       }}
     >
@@ -61,7 +61,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
           overflowX: "hidden",
           padding: "18px 20px 8px 20px",
           color: "#22334d",
-          fontSize: "17px",
+          fontSize: "12px",
           marginBottom: "4px",
           borderTopLeftRadius: "15px",
           borderTopRightRadius: "15px",
@@ -94,7 +94,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
           style={{
             flex: 1,
             padding: "12px 14px",
-            fontSize: "17px",
+            fontSize: "12px",
             border: "2px solid #3a5ca8",
             borderRadius: "10px",
             outline: "none",

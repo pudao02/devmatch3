@@ -89,7 +89,7 @@ const HeaderBar: React.FC = () => {
           alignItems: "center",
           justifyContent: "space-between",
           padding: "0 32px",
-          fontFamily: '"Comic Sans MS", "Comic Sans", "Chalkboard SE", "monospace", sans-serif',
+          fontFamily: "'PressStart2P', 'Courier New', monospace",
           boxShadow: "0 8px 32px 0 rgba(58,92,168,0.18), 0 4px 0 #3a5ca8",
           backdropFilter: "blur(2px)",
           opacity: visible ? 1 : 0,
@@ -117,13 +117,19 @@ const HeaderBar: React.FC = () => {
             {/* Replace with your logo image if you have one */}
             <span>🌤️</span>
           </div>
-          <span style={{ fontWeight: "bold", fontSize: 22, color: "#3a5ca8", letterSpacing: 1 }}>TeamName</span>
+          <span style={{ 
+            fontWeight: "bold", 
+            fontSize: 14, 
+            color: "#3a5ca8", 
+            letterSpacing: 1,
+            fontFamily: "'PressStart2P', 'Courier New', monospace"
+          }}>TeamName</span>
         </div>
         {/* Center: 3 Buttons */}
         <div style={{ display: "flex", gap: "18px" }}>
-          <button style={buttonStyle}>Button 1</button>
-          <button style={buttonStyle}>Button 2</button>
-          <button style={buttonStyle}>Button 3</button>
+          <button style={buttonStyle} className="header-button">Button 1</button>
+          <button style={buttonStyle} className="header-button">Button 2</button>
+          <button style={buttonStyle} className="header-button">Button 3</button>
         </div>
         {/* Right: Connect Wallet */}
         <div>
@@ -136,6 +142,7 @@ const HeaderBar: React.FC = () => {
               fontWeight: "bold",
               padding: "10px 26px",
             }}
+            className="header-button"
           >
             Connect Wallet
           </button>
@@ -150,8 +157,8 @@ const buttonStyle: React.CSSProperties = {
   color: "#3a5ca8",
   border: "2px solid #3a5ca8",
   borderRadius: "10px",
-  fontFamily: "inherit",
-  fontSize: "16px",
+  fontFamily: "'PressStart2P', 'Courier New', monospace !important",
+  fontSize: "10px",
   fontWeight: "bold",
   padding: "10px 22px",
   cursor: "pointer",
