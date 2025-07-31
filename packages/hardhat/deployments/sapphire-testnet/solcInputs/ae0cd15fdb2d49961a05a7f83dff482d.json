@@ -1,0 +1,42 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "@openzeppelin/contracts/access/Ownable.sol": {
+      "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)\n\npragma solidity ^0.8.20;\n\nimport {Context} from \"../utils/Context.sol\";\n\n/**\n * @dev Contract module which provides a basic access control mechanism, where\n * there is an account (an owner) that can be granted exclusive access to\n * specific functions.\n *\n * The initial owner is set to the address provided by the deployer. This can\n * later be changed with {transferOwnership}.\n *\n * This module is used through inheritance. It will make available the modifier\n * `onlyOwner`, which can be applied to your functions to restrict their use to\n * the owner.\n */\nabstract contract Ownable is Context {\n    address private _owner;\n\n    /**\n     * @dev The caller account is not authorized to perform an operation.\n     */\n    error OwnableUnauthorizedAccount(address account);\n\n    /**\n     * @dev The owner is not a valid owner account. (eg. `address(0)`)\n     */\n    error OwnableInvalidOwner(address owner);\n\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\n\n    /**\n     * @dev Initializes the contract setting the address provided by the deployer as the initial owner.\n     */\n    constructor(address initialOwner) {\n        if (initialOwner == address(0)) {\n            revert OwnableInvalidOwner(address(0));\n        }\n        _transferOwnership(initialOwner);\n    }\n\n    /**\n     * @dev Throws if called by any account other than the owner.\n     */\n    modifier onlyOwner() {\n        _checkOwner();\n        _;\n    }\n\n    /**\n     * @dev Returns the address of the current owner.\n     */\n    function owner() public view virtual returns (address) {\n        return _owner;\n    }\n\n    /**\n     * @dev Throws if the sender is not the owner.\n     */\n    function _checkOwner() internal view virtual {\n        if (owner() != _msgSender()) {\n            revert OwnableUnauthorizedAccount(_msgSender());\n        }\n    }\n\n    /**\n     * @dev Leaves the contract without owner. It will not be possible to call\n     * `onlyOwner` functions. Can only be called by the current owner.\n     *\n     * NOTE: Renouncing ownership will leave the contract without an owner,\n     * thereby disabling any functionality that is only available to the owner.\n     */\n    function renounceOwnership() public virtual onlyOwner {\n        _transferOwnership(address(0));\n    }\n\n    /**\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\n     * Can only be called by the current owner.\n     */\n    function transferOwnership(address newOwner) public virtual onlyOwner {\n        if (newOwner == address(0)) {\n            revert OwnableInvalidOwner(address(0));\n        }\n        _transferOwnership(newOwner);\n    }\n\n    /**\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\n     * Internal function without access restriction.\n     */\n    function _transferOwnership(address newOwner) internal virtual {\n        address oldOwner = _owner;\n        _owner = newOwner;\n        emit OwnershipTransferred(oldOwner, newOwner);\n    }\n}\n"
+    },
+    "@openzeppelin/contracts/utils/Context.sol": {
+      "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)\n\npragma solidity ^0.8.20;\n\n/**\n * @dev Provides information about the current execution context, including the\n * sender of the transaction and its data. While these are generally available\n * via msg.sender and msg.data, they should not be accessed in such a direct\n * manner, since when dealing with meta-transactions the account sending and\n * paying for execution may not be the actual sender (as far as an application\n * is concerned).\n *\n * This contract is only required for intermediate, library-like contracts.\n */\nabstract contract Context {\n    function _msgSender() internal view virtual returns (address) {\n        return msg.sender;\n    }\n\n    function _msgData() internal view virtual returns (bytes calldata) {\n        return msg.data;\n    }\n\n    function _contextSuffixLength() internal view virtual returns (uint256) {\n        return 0;\n    }\n}\n"
+    },
+    "contracts/HealthcareAI.sol": {
+      "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.17;\r\n\r\nimport \"@openzeppelin/contracts/access/Ownable.sol\";\r\n\r\ncontract HealthcareAI is Ownable {\r\n    constructor() Ownable(msg.sender) {}\r\n    struct Prompt {\r\n        string prompt;\r\n        uint256 timestamp;\r\n    }\r\n\r\n    struct Response {\r\n        string output;\r\n        uint256 timestamp;\r\n    }\r\n\r\n    struct Feedback {\r\n        uint8 rating;\r\n        string comment;\r\n        uint256 timestamp;\r\n    }\r\n\r\n    // Confidential mappings (Sapphire: all state is confidential by default)\r\n    mapping(address => Prompt[]) private userPrompts;\r\n    mapping(address => Response[]) private userResponses;\r\n    mapping(address => Feedback[]) private userFeedbacks;\r\n\r\n    // Address allowed to store AI responses (AI backend)\r\n    address public aiBackend;\r\n\r\n    event PromptSubmitted(address indexed user, uint256 promptId);\r\n    event ResponseStored(address indexed user, uint256 responseId);\r\n    event FeedbackSubmitted(address indexed user, uint256 promptId);\r\n    event AIBackendChanged(address indexed newBackend);\r\n\r\n    modifier onlyAIBackend() {\r\n        require(msg.sender == aiBackend, \"Not authorized\");\r\n        _;\r\n    }\r\n\r\n    // Set the AI backend address (only owner)\r\n    function setAIBackend(address _backend) external onlyOwner {\r\n        aiBackend = _backend;\r\n        emit AIBackendChanged(_backend);\r\n    }\r\n\r\n    // User submits a prompt\r\n    function submitPrompt(string calldata prompt) external {\r\n        userPrompts[msg.sender].push(Prompt(prompt, block.timestamp));\r\n        emit PromptSubmitted(msg.sender, userPrompts[msg.sender].length - 1);\r\n    }\r\n\r\n    // AI backend stores the response\r\n    function storeResponse(address user, string calldata output) external onlyAIBackend {\r\n        userResponses[user].push(Response(output, block.timestamp));\r\n        emit ResponseStored(user, userResponses[user].length - 1);\r\n    }\r\n\r\n    // User submits feedback for a prompt/response\r\n    function submitFeedback(uint promptId, uint8 rating, string calldata comment) external {\r\n        require(promptId < userPrompts[msg.sender].length, \"Invalid promptId\");\r\n        userFeedbacks[msg.sender].push(Feedback(rating, comment, block.timestamp));\r\n        emit FeedbackSubmitted(msg.sender, promptId);\r\n    }\r\n\r\n    // User retrieves their own history\r\n    function getMyPrompts() external view returns (Prompt[] memory) {\r\n        return userPrompts[msg.sender];\r\n    }\r\n\r\n    function getMyResponses() external view returns (Response[] memory) {\r\n        return userResponses[msg.sender];\r\n    }\r\n\r\n    function getMyFeedbacks() external view returns (Feedback[] memory) {\r\n        return userFeedbacks[msg.sender];\r\n    }\r\n}"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "evmVersion": "paris",
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}

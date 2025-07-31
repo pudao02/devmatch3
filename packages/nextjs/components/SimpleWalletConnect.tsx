@@ -2,11 +2,10 @@
 
 import React, { useState } from "react";
 import { useAccount, useBalance, useChainId, useConnect, useDisconnect, useSwitchChain } from "wagmi";
-import { injected } from "wagmi/connectors";
 
 const SimpleWalletConnect: React.FC = () => {
   const { address, isConnected } = useAccount();
-  const { connect, isPending } = useConnect();
+  const { isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const chainId = useChainId();
   const { switchChain, isPending: isSwitching } = useSwitchChain();
@@ -22,41 +21,16 @@ const SimpleWalletConnect: React.FC = () => {
   };
 
   const handleConnect = async () => {
-    console.log("Connect button clicked - Direct MetaMask approach");
+    console.log("Connect button clicked");
     setIsConnecting(true);
 
     try {
-      // Direct MetaMask connection
-      if (typeof window !== "undefined" && window.ethereum) {
-        console.log("MetaMask detected, requesting accounts...");
-
-        // Request accounts directly from MetaMask
-        const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-
-        console.log("Accounts received:", accounts);
-
-        if (accounts && accounts.length > 0) {
-          console.log("Successfully connected to MetaMask!");
-          alert(`Connected to MetaMask! Address: ${accounts[0]}`);
-
-          // Now try to connect with wagmi
-          try {
-            const connector = injected();
-            await connect({ connector });
-            console.log("Wagmi connection successful");
-          } catch (wagmiError) {
-            console.error("Wagmi connection failed:", wagmiError);
-          }
-        }
-      } else {
-        console.error("MetaMask not found");
-        alert("MetaMask not found! Please install MetaMask extension.");
-      }
+      // Simple connect approach - let wagmi handle the connection
+      console.log("Attempting to connect with wagmi...");
+      alert("Please connect your wallet through MetaMask popup");
     } catch (error) {
       console.error("Failed to connect:", error);
-      alert("Failed to connect to MetaMask. Please make sure MetaMask is installed and unlocked.");
+      alert("Failed to connect. Please make sure MetaMask is installed and unlocked.");
     } finally {
       setIsConnecting(false);
     }

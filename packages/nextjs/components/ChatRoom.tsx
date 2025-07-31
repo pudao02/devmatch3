@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth/useScaffoldReadContract";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth/useScaffoldWriteContract";
 
@@ -22,8 +22,15 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
   ]);
   const [input, setInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const { address } = useAccount();
+  const chainId = useChainId();
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Contract hooks
   const { writeContractAsync: submitPromptAsync } = useScaffoldWriteContract({
@@ -82,6 +89,11 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
     e.preventDefault();
     if (!input.trim() || !address) return;
 
+    console.log("Sending prompt:", input);
+    console.log("Wallet address:", address);
+    console.log("Chain ID:", chainId);
+    console.log("Expected Chain ID for Sapphire Mainnet: 23294");
+    console.log("Expected Chain ID for Sapphire Testnet: 23295");
     setIsLoading(true);
 
     try {
@@ -89,17 +101,26 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
       const userMsg: Message = { sender: "user", text: input };
       setMessages(prev => [...prev, userMsg]);
 
-      // Store prompt on blockchain
-      await submitPromptAsync({
+      console.log("Calling submitPromptAsync...");
+      // Store prompt on blockchain (using old contract function)
+      const result = await submitPromptAsync({
         functionName: "submitPrompt",
-        args: [input],
+        args: [input], // old function signature
       });
+      
+      console.log("Transaction result:", result);
+      
+      if (!result) {
+        throw new Error("Transaction failed - no result returned");
+      }
+      
+      console.log("Transaction hash:", result.hash);
 
       // Simulate AI response (in real app, this would come from your AI backend)
       setTimeout(() => {
         const aiResponse: Message = {
           sender: "ai",
-          text: `Thank you for your question: "${input}". This is a simulated AI response. In a real implementation, your AI backend would process this and store the response on the blockchain.`,
+          text: `Thank you for your question: "${input}". This is a simulated AI response. In a real implementation, your AI backend would process this and store the response on the blockchain. Transaction hash: ${result.hash}`,
         };
         setMessages(prev => [...prev, aiResponse]);
         setIsLoading(false);
@@ -113,7 +134,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
         ...prev,
         {
           sender: "system",
-          text: "Error: Failed to submit prompt to blockchain. Please try again.",
+          text: `Error: Failed to submit prompt to blockchain. Error: ${error instanceof Error ? error.message : String(error)}`,
         },
       ]);
       setIsLoading(false);
@@ -190,8 +211,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
           type="text"
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder={address ? "Type your healthcare question..." : "Please connect your wallet first..."}
-          disabled={!address || isLoading}
+          placeholder={mounted && address ? "Type your healthcare question..." : "Please connect your wallet first..."}
+          disabled={!mounted || !address || isLoading}
           style={{
             flex: 1,
             padding: "12px 14px",
@@ -199,24 +220,24 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
             border: "2px solid #3a5ca8",
             borderRadius: "10px",
             outline: "none",
-            background: address ? "#f5faff" : "#f0f0f0",
+            background: mounted && address ? "#f5faff" : "#f0f0f0",
             color: "#22334d",
             fontFamily: "inherit",
             marginRight: "10px",
             boxShadow: "2px 3px 0 #b3d1f7",
-            opacity: address ? 1 : 0.7,
+            opacity: mounted && address ? 1 : 0.7,
           }}
         />
         <button
           type="submit"
-          disabled={!address || isLoading}
+          disabled={!mounted || !address || isLoading}
           style={{
             padding: "12px 22px",
-            background: address && !isLoading ? "#ffe08a" : "#cccccc",
+            background: mounted && address && !isLoading ? "#ffe08a" : "#cccccc",
             color: "#22334d",
             border: "2px solid #3a5ca8",
             borderRadius: "10px",
-            cursor: address && !isLoading ? "pointer" : "not-allowed",
+            cursor: mounted && address && !isLoading ? "pointer" : "not-allowed",
             fontWeight: "bold",
             fontFamily: "inherit",
             fontSize: "17px",
@@ -224,12 +245,12 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ onSend }) => {
             transition: "background 0.2s",
           }}
           onMouseDown={e => {
-            if (address && !isLoading) {
+            if (mounted && address && !isLoading) {
               (e.target as HTMLButtonElement).style.background = "#ffe9b3";
             }
           }}
           onMouseUp={e => {
-            if (address && !isLoading) {
+            if (mounted && address && !isLoading) {
               (e.target as HTMLButtonElement).style.background = "#ffe08a";
             }
           }}
