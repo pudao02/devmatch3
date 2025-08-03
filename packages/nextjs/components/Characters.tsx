@@ -22,7 +22,7 @@ const Characters: React.FC<CharactersProps> = ({ gatherAndTalk = false, onLoaded
           idleAnimationPath: "/models/characters/animations/IdleCasualMale.fbx",
           talkingAnimationPath: "/models/characters/animations/TalkingForCasualMale.fbx",
           speechBubblePath: "/models/characters/speechbubble1.fbx",
-          position: [0, 0, 6] as [number, number, number],
+          position: [-2, 0, 6] as [number, number, number],
           rotation: [0, Math.PI / 4, 0] as [number, number, number],
           scale: 0.02,
           gatherPosition: [0, 0, 10] as [number, number, number],
@@ -37,7 +37,7 @@ const Characters: React.FC<CharactersProps> = ({ gatherAndTalk = false, onLoaded
           idleAnimationPath: "/models/characters/animations/IdleCasualFemale.fbx",
           talkingAnimationPath: "/models/characters/animations/TalkingForCasualFemale.fbx",
           speechBubblePath: "/models/characters/speechbubble2.fbx",
-          position: [0, 0, 6] as [number, number, number],
+          position: [2, 0, 6] as [number, number, number],
           rotation: [0, -Math.PI / 4, 0] as [number, number, number],
           scale: 0.02,
           gatherPosition: [-4, 0, 2] as [number, number, number],
@@ -52,7 +52,7 @@ const Characters: React.FC<CharactersProps> = ({ gatherAndTalk = false, onLoaded
           idleAnimationPath: "/models/characters/animations/IdleCasualMale.fbx",
           talkingAnimationPath: "/models/characters/animations/TalkingForCasualMale.fbx",
           speechBubblePath: "/models/characters/speechbubble1.fbx",
-          position: [0, 0, 6] as [number, number, number],
+          position: [0, 0, 8] as [number, number, number],
           rotation: [0, Math.PI / 2, 0] as [number, number, number],
           scale: 0.02,
           gatherPosition: [4, 0, 2] as [number, number, number],
@@ -67,7 +67,7 @@ const Characters: React.FC<CharactersProps> = ({ gatherAndTalk = false, onLoaded
           idleAnimationPath: "/models/characters/animations/IdleCasualFemale3.fbx",
           talkingAnimationPath: "/models/characters/animations/TalkingForCasualFemale3.fbx",
           speechBubblePath: "/models/characters/speechbubble3.fbx",
-          position: [0, 0, 6] as [number, number, number],
+          position: [0, 0, 4] as [number, number, number],
           rotation: [0, -Math.PI / 2, 0] as [number, number, number],
           scale: 0.02,
           gatherPosition: [0, 0, -4] as [number, number, number],
@@ -84,13 +84,13 @@ const Characters: React.FC<CharactersProps> = ({ gatherAndTalk = false, onLoaded
   };
 
   useEffect(() => {
-    // Progressive character loading
+    // Progressive character loading - show all characters immediately
     const timer = setTimeout(() => {
-      setCharactersToShow(1);
+      setCharactersToShow(characterModels.length - 1); // Show all characters (0-based index)
     }, 500);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [characterModels.length]);
 
   useEffect(() => {
     if (loadedCount >= characterModels.length && onLoaded) {

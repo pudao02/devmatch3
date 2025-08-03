@@ -58,12 +58,17 @@ const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages, onSummarySaved 
       const timeSinceActivity = Date.now() - lastActivity;
 
       if (timeSinceActivity > INACTIVITY_TIMEOUT) {
-        autoSaveChat();
+        // Auto-save full chat to summaries system
+        const autoSaveTitle = `Auto_Saved_Chat_${new Date().toISOString().split("T")[0]}`;
+        saveFullChatAsJSON(autoSaveTitle);
+        console.log("Chat auto-saved to summaries:", autoSaveTitle);
       } else {
         // Set timeout for auto-save
         if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
         const timeout = setTimeout(() => {
-          autoSaveChat();
+          const autoSaveTitle = `Auto_Saved_Chat_${new Date().toISOString().split("T")[0]}`;
+          saveFullChatAsJSON(autoSaveTitle);
+          console.log("Chat auto-saved to summaries:", autoSaveTitle);
         }, INACTIVITY_TIMEOUT - timeSinceActivity);
         setAutoSaveTimeout(timeout);
       }
@@ -72,8 +77,7 @@ const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages, onSummarySaved 
     return () => {
       if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastActivity, messages, INACTIVITY_TIMEOUT, autoSaveTimeout]);
+  }, [lastActivity, messages.length, INACTIVITY_TIMEOUT, autoSaveTimeout]);
 
   // Show save button permanently
   useEffect(() => {
@@ -86,7 +90,8 @@ const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages, onSummarySaved 
     const handleBeforeUnload = () => {
       const userMessages = messages.filter(msg => msg.sender === "user");
       if (userMessages.length >= MIN_MESSAGES_FOR_SAVE) {
-        autoSaveChat();
+        const autoSaveTitle = `Auto_Saved_Chat_${new Date().toISOString().split("T")[0]}`;
+        saveFullChatAsJSON(autoSaveTitle);
       }
     };
 
@@ -96,8 +101,7 @@ const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages, onSummarySaved 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages]);
+  }, [messages.length]);
 
   const extractTopics = (texts: string[]): string[] => {
     const commonTopics = [
@@ -141,16 +145,6 @@ const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages, onSummarySaved 
       console.error("Failed to save summary:", err);
     }
   };
-
-  const autoSaveChat = useCallback(() => {
-    const userMessages = messages.filter(msg => msg.sender === "user");
-    if (userMessages.length >= MIN_MESSAGES_FOR_SAVE) {
-      // Auto-save full chat to summaries system
-      const autoSaveTitle = `Auto_Saved_Chat_${new Date().toISOString().split("T")[0]}`;
-      saveFullChatAsJSON(autoSaveTitle);
-      console.log("Chat auto-saved to summaries:", autoSaveTitle);
-    }
-  }, [messages, MIN_MESSAGES_FOR_SAVE]);
 
   const handleManualSave = () => {
     setShowSaveModal(true);
