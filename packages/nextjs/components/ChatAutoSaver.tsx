@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { BookmarkIcon, SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
@@ -23,13 +23,97 @@ interface ChatAutoSaverProps {
   onSummarySaved?: (summary: ChatSummary) => void;
 }
 
-const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages, onSummarySaved }) => {
+// Move these outside the component to prevent recreation on every render
+const COMMON_TOPICS = [
+  "blockchain",
+  "ethereum",
+  "smart contracts",
+  "defi",
+  "nft",
+  "web3",
+  "development",
+  "coding",
+  "programming",
+  "react",
+  "nextjs",
+  "typescript",
+  "cryptocurrency",
+  "trading",
+  "investment",
+  "technology",
+  "ai",
+  "machine learning",
+];
+
+const extractTopics = (texts: string[]): string[] => {
+  const foundTopics = COMMON_TOPICS.filter(topic =>
+    texts.some(text => text.toLowerCase().includes(topic.toLowerCase())),
+  );
+
+  return foundTopics.length > 0 ? foundTopics : ["general"];
+};
+
+const saveFullChatAsJSON = (messages: Message[], title: string) => {
+  const userMessages = messages.filter(msg => msg.sender === "user");
+  const systemMessages = messages.filter(msg => msg.sender === "system");
+
+  // Create a summary that includes the full chat data
+  const summary: ChatSummary = {
+    id: Date.now().toString(),
+    date: new Date().toISOString().split("T")[0],
+    summary: `Full chat conversation: ${userMessages.length} user messages and ${systemMessages.length} system responses. Topics: ${extractTopics(userMessages.map(m => m.text)).join(", ")}`,
+    messageCount: messages.length,
+    participants: ["User", "System"],
+    tags: extractTopics(userMessages.map(m => m.text)),
+    createdAt: new Date().toISOString(),
+    title: title,
+  };
+
+  // Save to the chat summaries system
+  try {
+    const existingSummaries = JSON.parse(localStorage.getItem("chatSummaries") || "[]");
+    const updatedSummaries = [summary, ...existingSummaries];
+    localStorage.setItem("chatSummaries", JSON.stringify(updatedSummaries));
+  } catch (err) {
+    console.error("Failed to save summary:", err);
+  }
+
+  // Also save the full chat data to localStorage for potential future use
+  const fullChatData = {
+    id: summary.id,
+    title: title,
+    date: summary.date,
+    createdAt: summary.createdAt,
+    messages: messages, // Full conversation
+    metadata: {
+      totalMessages: messages.length,
+      userMessages: userMessages.length,
+      systemMessages: systemMessages.length,
+      participants: ["User", "System"],
+      tags: summary.tags,
+    },
+  };
+
+  // Store full chat data separately
+  try {
+    const existingFullChats = JSON.parse(localStorage.getItem("fullChatData") || "[]");
+    const updatedFullChats = [fullChatData, ...existingFullChats];
+    localStorage.setItem("fullChatData", JSON.stringify(updatedFullChats));
+  } catch (err) {
+    console.error("Failed to save full chat data:", err);
+  }
+
+  console.log("Full chat saved to summaries:", title);
+};
+
+const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages }) => {
   const [showSaveButton, setShowSaveButton] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveTitle, setSaveTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const hasAutoSaved = useRef(false);
 
   const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   const MIN_MESSAGES_FOR_SAVE = 1; // Changed to 1 so button shows immediately
@@ -53,22 +137,28 @@ const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages, onSummarySaved 
 
   // Auto-save on inactivity
   useEffect(() => {
+    console.log("ChatAutoSaver useEffect triggered, messages.length:", messages.length);
+
     const userMessages = messages.filter(msg => msg.sender === "user");
     if (userMessages.length >= MIN_MESSAGES_FOR_SAVE) {
       const timeSinceActivity = Date.now() - lastActivity;
 
-      if (timeSinceActivity > INACTIVITY_TIMEOUT) {
+      if (timeSinceActivity > INACTIVITY_TIMEOUT && !hasAutoSaved.current) {
         // Auto-save full chat to summaries system
         const autoSaveTitle = `Auto_Saved_Chat_${new Date().toISOString().split("T")[0]}`;
-        saveFullChatAsJSON(autoSaveTitle);
-        console.log("Chat auto-saved to summaries:", autoSaveTitle);
-      } else {
+        console.log("Auto-saving chat:", autoSaveTitle);
+        hasAutoSaved.current = true;
+        saveFullChatAsJSON(messages, autoSaveTitle);
+      } else if (timeSinceActivity <= INACTIVITY_TIMEOUT) {
         // Set timeout for auto-save
         if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
         const timeout = setTimeout(() => {
-          const autoSaveTitle = `Auto_Saved_Chat_${new Date().toISOString().split("T")[0]}`;
-          saveFullChatAsJSON(autoSaveTitle);
-          console.log("Chat auto-saved to summaries:", autoSaveTitle);
+          if (!hasAutoSaved.current) {
+            const autoSaveTitle = `Auto_Saved_Chat_${new Date().toISOString().split("T")[0]}`;
+            console.log("Auto-saving chat via timeout:", autoSaveTitle);
+            hasAutoSaved.current = true;
+            saveFullChatAsJSON(messages, autoSaveTitle);
+          }
         }, INACTIVITY_TIMEOUT - timeSinceActivity);
         setAutoSaveTimeout(timeout);
       }
@@ -77,6 +167,7 @@ const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages, onSummarySaved 
     return () => {
       if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastActivity, messages.length, INACTIVITY_TIMEOUT, autoSaveTimeout]);
 
   // Show save button permanently
@@ -89,9 +180,11 @@ const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages, onSummarySaved 
   useEffect(() => {
     const handleBeforeUnload = () => {
       const userMessages = messages.filter(msg => msg.sender === "user");
-      if (userMessages.length >= MIN_MESSAGES_FOR_SAVE) {
+      if (userMessages.length >= MIN_MESSAGES_FOR_SAVE && !hasAutoSaved.current) {
         const autoSaveTitle = `Auto_Saved_Chat_${new Date().toISOString().split("T")[0]}`;
-        saveFullChatAsJSON(autoSaveTitle);
+        console.log("Auto-saving chat on beforeunload:", autoSaveTitle);
+        hasAutoSaved.current = true;
+        saveFullChatAsJSON(messages, autoSaveTitle);
       }
     };
 
@@ -101,50 +194,8 @@ const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages, onSummarySaved 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages.length]);
-
-  const extractTopics = (texts: string[]): string[] => {
-    const commonTopics = [
-      "blockchain",
-      "ethereum",
-      "smart contracts",
-      "defi",
-      "nft",
-      "web3",
-      "development",
-      "coding",
-      "programming",
-      "react",
-      "nextjs",
-      "typescript",
-      "cryptocurrency",
-      "trading",
-      "investment",
-      "technology",
-      "ai",
-      "machine learning",
-    ];
-
-    const foundTopics = commonTopics.filter(topic =>
-      texts.some(text => text.toLowerCase().includes(topic.toLowerCase())),
-    );
-
-    return foundTopics.length > 0 ? foundTopics : ["general"];
-  };
-
-  const saveSummary = (summary: ChatSummary) => {
-    try {
-      const existingSummaries = JSON.parse(localStorage.getItem("chatSummaries") || "[]");
-      const updatedSummaries = [summary, ...existingSummaries];
-      localStorage.setItem("chatSummaries", JSON.stringify(updatedSummaries));
-
-      if (onSummarySaved) {
-        onSummarySaved(summary);
-      }
-    } catch (err) {
-      console.error("Failed to save summary:", err);
-    }
-  };
 
   const handleManualSave = () => {
     setShowSaveModal(true);
@@ -154,56 +205,13 @@ const ChatAutoSaver: React.FC<ChatAutoSaverProps> = ({ messages, onSummarySaved 
   const confirmManualSave = useCallback(() => {
     setIsSaving(true);
     setTimeout(() => {
-      saveFullChatAsJSON(saveTitle);
+      saveFullChatAsJSON(messages, saveTitle);
       setShowSaveModal(false);
       setSaveTitle("");
       setIsSaving(false);
     }, 1000); // Simulate processing time
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saveTitle]);
-
-  const saveFullChatAsJSON = (title: string) => {
-    const userMessages = messages.filter(msg => msg.sender === "user");
-    const systemMessages = messages.filter(msg => msg.sender === "system");
-
-    // Create a summary that includes the full chat data
-    const summary: ChatSummary = {
-      id: Date.now().toString(),
-      date: new Date().toISOString().split("T")[0],
-      summary: `Full chat conversation: ${userMessages.length} user messages and ${systemMessages.length} system responses. Topics: ${extractTopics(userMessages.map(m => m.text)).join(", ")}`,
-      messageCount: messages.length,
-      participants: ["User", "System"],
-      tags: extractTopics(userMessages.map(m => m.text)),
-      createdAt: new Date().toISOString(),
-      title: title,
-    };
-
-    // Save to the chat summaries system
-    saveSummary(summary);
-
-    // Also save the full chat data to localStorage for potential future use
-    const fullChatData = {
-      id: summary.id,
-      title: title,
-      date: summary.date,
-      createdAt: summary.createdAt,
-      messages: messages, // Full conversation
-      metadata: {
-        totalMessages: messages.length,
-        userMessages: userMessages.length,
-        systemMessages: systemMessages.length,
-        participants: ["User", "System"],
-        tags: summary.tags,
-      },
-    };
-
-    // Store full chat data separately
-    const existingFullChats = JSON.parse(localStorage.getItem("fullChatData") || "[]");
-    const updatedFullChats = [fullChatData, ...existingFullChats];
-    localStorage.setItem("fullChatData", JSON.stringify(updatedFullChats));
-
-    console.log("Full chat saved to summaries:", title);
-  };
 
   console.log("ChatAutoSaver: showSaveButton =", showSaveButton, "messages.length =", messages.length);
 

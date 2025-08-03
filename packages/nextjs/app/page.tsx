@@ -17,14 +17,11 @@ const Home: React.FC = () => {
   const [gatherAndTalk, setGatherAndTalk] = useState(false);
 
   const handleChatSend = (message: string) => {
-    // Add user message
+    // Add both user message and system response in a single state update
     const userMessage = { sender: "user" as const, text: message };
-    setMessages(prev => [...prev, userMessage]);
-
-    // Add system response
     const systemMessage = { sender: "system" as const, text: `Helper did something in response to: "${message}"` };
-    setMessages(prev => [...prev, systemMessage]);
 
+    setMessages(prev => [...prev, userMessage, systemMessage]);
     setResults(prev => [...prev, `Helper did something in response to: "${message}"`]);
     setGatherAndTalk(true);
     setTimeout(() => setGatherAndTalk(false), 30000); // 30 seconds of talking
