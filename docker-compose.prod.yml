@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  # Production Next.js frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: se2-frontend-prod
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+    restart: unless-stopped
+    networks:
+      - se2-network
+
+networks:
+  se2-network:
+    driver: bridge 
