@@ -1,6 +1,8 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 import { HardhatUserConfig } from "hardhat/config";
+//import "@nomicfoundation/hardhat-toolbox"; // the saphire // uncomment this cuzase have to much plugin. dont remove for now, furture might use it
+import "@oasisprotocol/sapphire-hardhat"; //sapphire
 import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@typechain/hardhat";
@@ -11,7 +13,11 @@ import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import { task } from "hardhat/config";
 import generateTsAbis from "./scripts/generateTsAbis";
+import "./tasks";
 
+//
+console.log("DEBUG: PRIVATE_KEY loaded?", !!process.env.PRIVATE_KEY);
+//
 // If not set, it uses ours Alchemy's default API key.
 // You can get your own at https://dashboard.alchemyapi.io
 const providerApiKey = process.env.ALCHEMY_API_KEY || "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
@@ -21,6 +27,11 @@ const deployerPrivateKey =
   process.env.__RUNTIME_DEPLOYER_PRIVATE_KEY ?? "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 // If not set, it uses our block explorers default API keys.
 const etherscanApiKey = process.env.ETHERSCAN_V2_API_KEY || "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW";
+
+// Sapphire accounts configuration
+// Sapphire accounts configuration
+const accounts = process.env.PRIVATE_KEY ? [`0x${process.env.PRIVATE_KEY}`] : [];
+/////
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -47,6 +58,22 @@ const config: HardhatUserConfig = {
   networks: {
     // View the networks that are pre-configured.
     // If the network you are looking for is not here you can add new network settings
+    sapphire: {
+      url: "https://sapphire.oasis.io",
+      chainId: 0x5afe,
+      accounts,
+    },
+    "sapphire-testnet": {
+      url: "https://testnet.sapphire.oasis.io",
+      accounts,
+      chainId: 0x5aff,
+    },
+    "sapphire-localnet": {
+      // docker run -it -p8544-8548:8544-8548 ghcr.io/oasisprotocol/sapphire-localnet
+      url: "http://localhost:8545",
+      chainId: 0x5afd,
+      accounts,
+    },
     hardhat: {
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,

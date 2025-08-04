@@ -1,8 +1,8 @@
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { Suspense, useRef, useState } from "react";
 import Character from "./Character";
-import { Environment, OrbitControls, PerspectiveCamera, useFBX, useGLTF } from "@react-three/drei";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Group, Vector3 } from "three";
+import { Environment, OrbitControls, PerspectiveCamera, useGLTF } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
+import { Group } from "three";
 
 interface FloorProps {
   scale?: [number, number, number];
@@ -15,105 +15,13 @@ interface ModelProps {
   scale?: [number, number, number] | number;
 }
 
-interface LazyModelProps {
-  Component: React.ComponentType<any>;
-  props: {
-    modelPath?: string;
-    position?: number[];
-    rotation?: number[];
-    scale?: number;
-    [key: string]: any;
-  };
-  onLoaded?: () => void;
-}
+// LazyModelProps interface removed - unused
 
-// Keyboard controls hook
-const useKeyboardControls = () => {
-  const { camera } = useThree();
-  const keys = useRef({
-    w: false,
-    a: false,
-    s: false,
-    d: false,
-    q: false, // up
-    e: false, // down
-  });
+// Keyboard controls hook - removed unused function
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
-      if (key in keys.current) {
-        keys.current[key as keyof typeof keys.current] = true;
-      }
-    };
+// Keyboard Controls Component - removed unused component
 
-    const handleKeyUp = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
-      if (key in keys.current) {
-        keys.current[key as keyof typeof keys.current] = false;
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-    };
-  }, []);
-
-  useFrame(() => {
-    const speed = 0.5;
-    const direction = new Vector3();
-
-    if (keys.current.w) {
-      direction.z -= speed; // Forward
-    }
-    if (keys.current.s) {
-      direction.z += speed; // Backward
-    }
-    if (keys.current.a) {
-      direction.x -= speed; // Left
-    }
-    if (keys.current.d) {
-      direction.x += speed; // Right
-    }
-    if (keys.current.q) {
-      direction.y += speed; // Up
-    }
-    if (keys.current.e) {
-      direction.y -= speed; // Down
-    }
-
-    // Apply rotation to direction vector
-    direction.applyQuaternion(camera.quaternion);
-    camera.position.add(direction);
-  });
-};
-
-// Keyboard Controls Component
-const KeyboardControls: React.FC = () => {
-  useKeyboardControls();
-  return null;
-};
-
-// Character LazyModel component
-function LazyModel({ Component, props, onLoaded }: LazyModelProps) {
-  // Always call the hook, but conditionally pass the modelPath
-  const modelPath = props.modelPath && props.modelPath.endsWith(".fbx") ? props.modelPath : undefined;
-  const model = useFBX(modelPath as string);
-  const loaded = !!model;
-
-  useEffect(() => {
-    if (onLoaded && loaded) onLoaded();
-  }, [onLoaded, loaded]);
-
-  if (model) {
-    return <primitive object={model} {...props} />;
-  }
-  return <Component {...props} />;
-}
+// Character LazyModel component - removed unused function
 
 // Character models array
 const characterModels = [
@@ -217,20 +125,14 @@ const TableClothModel: React.FC<ModelProps> = props => {
   return <primitive object={scene} position={[0, 0, 0]} scale={[1, 1, 1]} {...props} />;
 };
 
-const LoungeSofaCornerModel: React.FC<ModelProps> = props => {
-  const { scene } = useGLTF("/models/furnitures/loungeSofaCorner.glb");
-  return <primitive object={scene} position={[0, 0, 0]} scale={[1, 1, 1]} {...props} />;
-};
+// LoungeSofaCornerModel removed - unused
 
 const LoungeSofaModel: React.FC<ModelProps> = props => {
   const { scene } = useGLTF("/models/furnitures/loungeSofa.glb");
   return <primitive object={scene} position={[0, 0, 0]} scale={[1, 1, 1]} {...props} />;
 };
 
-const LampSquareFloorModel: React.FC<ModelProps> = props => {
-  const { scene } = useGLTF("/models/furnitures/lampSquareFloor.glb");
-  return <primitive object={scene} position={[0, 0, 0]} scale={[1, 1, 1]} {...props} />;
-};
+// LampSquareFloorModel removed - unused
 
 const DeskModel: React.FC<ModelProps> = props => {
   const { scene } = useGLTF("/models/furnitures/desk.glb");
@@ -444,7 +346,7 @@ const RoomGeometry: React.FC<FloorProps> = ({ scale = [1, 1, 1] }) => {
 
       {/* Kitchen Bars */}
       <KitchenBarModel position={[-20, 0, -1]} rotation={[0, Math.PI / 2, 0]} />
-      <KitchenBar2Model position={[-20, 0,-5]} rotation={[0, Math.PI / 2, 0]} />
+      <KitchenBar2Model position={[-20, 0, -5]} rotation={[0, Math.PI / 2, 0]} />
       <KitchenBar3Model position={[-20, 0, -9]} rotation={[0, Math.PI / 2, 0]} />
 
       {/* Kitchen Bar End */}

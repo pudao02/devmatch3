@@ -1,7 +1,6 @@
-import { wagmiConnectors } from "./wagmiConnectors";
 import { Chain, createClient, fallback, http } from "viem";
-import { hardhat, mainnet } from "viem/chains";
 import { createConfig } from "wagmi";
+import { injected } from "wagmi/connectors";
 import scaffoldConfig, { DEFAULT_ALCHEMY_API_KEY, ScaffoldConfig } from "~~/scaffold.config";
 import { getAlchemyHttpUrl } from "~~/utils/scaffold-eth";
 
@@ -10,12 +9,18 @@ const { targetNetworks } = scaffoldConfig;
 // We always want to have mainnet enabled (ENS resolution, ETH price, etc). But only once.
 export const enabledChains = targetNetworks.find((network: Chain) => network.id === 1)
   ? targetNetworks
-  : ([...targetNetworks, mainnet] as const);
+  : ([...targetNetworks] as const);
 
 export const wagmiConfig = createConfig({
   chains: enabledChains,
-  connectors: wagmiConnectors,
-  ssr: true,
+  connectors: [
+    injected({
+      target: "metaMask",
+      shimDisconnect: true,
+      shimChainChangedDisconnect: true,
+    }),
+  ],
+  ssr: false, // Disable SSR to prevent auto-connection
   client: ({ chain }) => {
     let rpcFallbacks = [http()];
     const rpcOverrideUrl = (scaffoldConfig.rpcOverrides as ScaffoldConfig["rpcOverrides"])?.[chain.id];
@@ -31,7 +36,7 @@ export const wagmiConfig = createConfig({
     return createClient({
       chain,
       transport: fallback(rpcFallbacks),
-      ...(chain.id !== (hardhat as Chain).id ? { pollingInterval: scaffoldConfig.pollingInterval } : {}),
+      ...(chain.id !== 31337 ? { pollingInterval: scaffoldConfig.pollingInterval } : {}),
     });
   },
 });
