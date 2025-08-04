@@ -4,6 +4,7 @@ import { useState } from "react";
 import Head from "next/head";
 import ChatAutoSaver from "../components/ChatAutoSaver";
 import ChatRoom from "../components/ChatRoom";
+import { ClientThemeProvider } from "../components/ClientThemeProvider";
 import HeaderBar from "../components/HeaderBar";
 import ResultTab from "../components/ResultTab";
 import Scene from "../components/Scene";
@@ -28,7 +29,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <>
+    <ClientThemeProvider>
       <Head>
         <title>3D Living Room Chat</title>
         <meta name="description" content="Interactive 3D living room with chat functionality" />
@@ -43,7 +44,7 @@ const Home: React.FC = () => {
         <ChatAutoSaver messages={messages} />
         <ResultTab results={results} />
       </div>
-    </>
+    </ClientThemeProvider>
   );
 };
 
