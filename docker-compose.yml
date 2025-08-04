@@ -1,0 +1,63 @@
+services:
+  # Hardhat blockchain node
+  hardhat-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: se2-hardhat-node
+    working_dir: /app/packages/hardhat
+    command: npx hardhat node --network hardhat --no-deploy
+    ports:
+      - "8545:8545"
+    volumes:
+      - ./packages/hardhat:/app/packages/hardhat
+      - ./packages/hardhat/deployments:/app/packages/hardhat/deployments
+    environment:
+      - NODE_ENV=development
+    networks:
+      - se2-network
+
+  # Next.js frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: se2-frontend
+    command: yarn start
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./packages/nextjs:/app/packages/nextjs
+      - ./packages/nextjs/.next:/app/packages/nextjs/.next
+      - ./packages/nextjs/node_modules:/app/packages/nextjs/node_modules
+    environment:
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
+    depends_on:
+      - hardhat-node
+    networks:
+      - se2-network
+
+  # Contract deployment service
+  deploy:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: se2-deploy
+    working_dir: /app/packages/hardhat
+    command: npx hardhat run scripts/runHardhatDeployWithPK.ts --network hardhat
+    volumes:
+      - ./packages/hardhat:/app/packages/hardhat
+      - ./packages/hardhat/deployments:/app/packages/hardhat/deployments
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - hardhat-node
+    networks:
+      - se2-network
+    profiles:
+      - deploy
+
+networks:
+  se2-network:
+    driver: bridge 

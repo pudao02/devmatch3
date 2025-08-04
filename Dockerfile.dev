@@ -1,0 +1,35 @@
+# Development Dockerfile for Scaffold-ETH 2
+FROM node:20-alpine
+
+# Install system dependencies including Python for native builds
+RUN apk add --no-cache libc6-compat git python3 make g++
+
+# Enable Corepack for Yarn version management
+RUN corepack enable
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json yarn.lock ./
+COPY packages/nextjs/package.json ./packages/nextjs/
+COPY packages/hardhat/package.json ./packages/hardhat/
+
+# Configure Yarn to use node_modules instead of PnP for native modules compatibility
+RUN yarn config set nodeLinker node-modules
+
+# Install dependencies
+RUN yarn install --frozen-lockfile || (cat /tmp/xfs-*/build.log && exit 1)
+
+# Copy source code
+COPY . .
+
+# Expose ports
+EXPOSE 3000 8545
+
+# Set environment variables
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Default command (can be overridden)
+CMD ["yarn", "start"]

@@ -8,12 +8,7 @@ interface SpeechBubbleProps {
   visible?: boolean;
 }
 
-const SpeechBubble: React.FC<SpeechBubbleProps> = ({ 
-  modelPath, 
-  position = [0, 0, 0], 
-  scale = 1, 
-  visible = true 
-}) => {
+const SpeechBubble: React.FC<SpeechBubbleProps> = ({ modelPath, position = [0, 0, 0], scale = 1, visible = true }) => {
   const speechBubble = useFBX(modelPath);
 
   // Debug logging
@@ -22,7 +17,7 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
     visible,
     speechBubbleLoaded: !!speechBubble,
     position,
-    scale
+    scale,
   });
 
   if (!visible || !speechBubble) {
@@ -30,13 +25,7 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
     return null;
   }
 
-  return (
-    <primitive 
-      object={speechBubble} 
-      position={position}
-      scale={[scale, scale, scale]}
-    />
-  );
+  return <primitive object={speechBubble} position={position} scale={[scale, scale, scale]} />;
 };
 
-export default SpeechBubble; 
+export default SpeechBubble;
